@@ -1,6 +1,8 @@
 package com.plot.controllers;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -110,6 +112,32 @@ public class UserController {
 	        return ResponseEntity.ok(UserDtoMapper.toUserDtos(users));
 	    }
 	
+	  
+	  @GetMapping("/friends")
+	  public ResponseEntity<List<UserDto>> getFriends(
+	          @RequestHeader("Authorization") String jwt) throws UserException {
+
+	      User user = userService.findUserProfileByJwt(jwt);
+
+	      List<User> followers = user.getFollowers();
+	      List<User> followings = user.getFollowings();
+
+	      // Use set for quick mutual check
+	      Set<Long> followingIds = followings.stream()
+	              .map(User::getId)
+	              .collect(Collectors.toSet());
+
+	      List<User> mutualFriends = followers.stream()
+	              .filter(follower -> followingIds.contains(follower.getId()))
+	              .collect(Collectors.toList());
+
+	      List<UserDto> friendDtos = mutualFriends.stream()
+	    		    .map(UserDtoMapper::toUserDto)
+	    		    .collect(Collectors.toList());
+
+	      return new ResponseEntity<>(friendDtos, HttpStatus.OK);
+	  }
+
 
 
 }

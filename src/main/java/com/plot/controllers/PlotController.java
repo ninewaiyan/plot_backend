@@ -1,6 +1,8 @@
 package com.plot.controllers;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +48,6 @@ public class PlotController {
 
 	@Autowired
 	private NotificationService notificationService;
-
 
 
 
@@ -98,19 +99,59 @@ public class PlotController {
 	}
 
 
+//	@GetMapping("/")
+//	public ResponseEntity<List<PlotDto>>getAllPlot(
+//			@RequestHeader("Authorization")String jwt)throws UserException,PlotException{
+//
+//		User user = userService.findUserProfileByJwt(jwt);
+//
+//		List<Plot>plots = plotService.findAllPlots();
+//
+//		List<PlotDto>plotDtos = PlotDtoMapper.toPlotDtos(plots,user);
+//
+//
+//		return new ResponseEntity<>(plotDtos,HttpStatus.OK);
+//	}
+	
 	@GetMapping("/")
-	public ResponseEntity<List<PlotDto>>getAllPlot(
-			@RequestHeader("Authorization")String jwt)throws UserException,PlotException{
+	public ResponseEntity<List<PlotDto>> getAllPlot(
+	        @RequestHeader("Authorization") String jwt) throws UserException, PlotException {
 
-		User user = userService.findUserProfileByJwt(jwt);
+	    User user = userService.findUserProfileByJwt(jwt);
 
-		List<Plot>plots = plotService.findAllPlots();
+	    List<User> followings = user.getFollowings(); // assuming you have this field
 
-		List<PlotDto>plotDtos = PlotDtoMapper.toPlotDtos(plots,user);
+	    List<Plot> allPlots = plotService.findAllPlots();
 
+	    // Separate plots into two lists
+	    List<Plot> followingPlots = new ArrayList<>();
+	    List<Plot> otherPlots = new ArrayList<>();
 
-		return new ResponseEntity<>(plotDtos,HttpStatus.OK);
+	    for (Plot plot : allPlots) {
+	        if (followings.contains(plot.getUser())) {
+	            followingPlots.add(plot);
+	        } else {
+	            otherPlots.add(plot);
+	        }
+	    }
+
+	    // Sort both by createdAt DESC
+	    Comparator<Plot> sortByDateDesc = Comparator.comparing(Plot::getCreatedAt).reversed();
+
+	    followingPlots.sort(sortByDateDesc);
+	    otherPlots.sort(sortByDateDesc);
+
+	    // Merge
+	    List<Plot> sortedPlots = new ArrayList<>();
+	    sortedPlots.addAll(followingPlots);
+	    sortedPlots.addAll(otherPlots);
+
+	    // Convert to DTOs
+	    List<PlotDto> plotDtos = PlotDtoMapper.toPlotDtos(sortedPlots, user);
+
+	    return new ResponseEntity<>(plotDtos, HttpStatus.OK);
 	}
+
 
 	@GetMapping("/{id}")
 	public ResponseEntity<PlotDto> getPlotById(
