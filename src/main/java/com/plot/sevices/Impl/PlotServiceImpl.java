@@ -112,7 +112,7 @@ public class PlotServiceImpl implements PlotService {
 	@Override
 	public List<Plot> getUserPlots(User user) {
 		// TODO Auto-generated method stub
-		return plotRepository.findByCollectedUsersContainsOrUser_IdAndIsPlotTrueOrderByCreatedAtDesc(user,user.getId());
+		return plotRepository.findByCollectedUsersContainsOrUser_IdOrderByCreatedAtDesc(user,user.getId());
 	}
 
 	@Override

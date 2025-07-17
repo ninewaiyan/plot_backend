@@ -15,7 +15,7 @@ public interface PlotRepository extends JpaRepository<Plot, Long> {
     List<Plot> findAllByIsPlotTrueOrderByCreatedAtDesc();
 
     // Fetch plots where the user is the author or has re-plotted it
-    List<Plot> findByCollectedUsersContainsOrUser_IdAndIsPlotTrueOrderByCreatedAtDesc(User user, Long userId);
+    List<Plot> findByCollectedUsersContainsOrUser_IdOrderByCreatedAtDesc(User user, Long userId);
 
     // Fetch plots that a user liked (if you're using a direct likes collection)
     List<Plot> findByLikesContainingOrderByCreatedAtDesc(User user);
